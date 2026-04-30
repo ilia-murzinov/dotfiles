@@ -72,3 +72,6 @@ xnoremap <M-k> :move '<-2<CR>gv
 nnoremap <M-j> :move .+1<CR>
 nnoremap <M-k> :move .-2<CR>
 xnoremap d d
+
+" Insert mode
+inoremap jj <Esc>
