@@ -49,6 +49,10 @@ nnoremap <leader>sq :%s/.*/'&',/<CR>
 nnoremap <leader>ta :call AddTag()<CR>
 nnoremap <leader>ts :call ShowTags()<CR>
 
+" Tasks
+nnoremap <leader>tt I-<space>[<space>]<space><Esc>
+nnoremap <leader>td ^ci[x<Esc>
+
 " Date & time
 nnoremap <leader>dd :call InsertDate()<CR>
 nnoremap <leader>dt :call InsertDateTime()<CR>o
@@ -72,6 +76,3 @@ xnoremap <M-k> :move '<-2<CR>gv
 nnoremap <M-j> :move .+1<CR>
 nnoremap <M-k> :move .-2<CR>
 xnoremap d d
-
-" Insert mode
-inoremap jj <Esc>
