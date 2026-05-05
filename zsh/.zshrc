@@ -75,23 +75,27 @@ if (( $+commands[brew] )); then
   [[ -n $_zb && -f $_zb/share/zsh-vi-mode/zsh-vi-mode.plugin.zsh ]] \
     && _zvm_file=$_zb/share/zsh-vi-mode/zsh-vi-mode.plugin.zsh
 fi
+
+# --- Prompt (Starship if installed, else plain zsh + git branch) ---
 if [[ -n $_zvm_file ]]; then
+  # zvm_after_init must be defined before sourcing so zvm calls it at end of source
+  function zvm_after_init() {
+    bindkey '^[[A' history-beginning-search-backward
+    bindkey '^[[B' history-beginning-search-forward
+  }
   source "$_zvm_file"
 else
   bindkey -v
   KEYTIMEOUT=25
+  bindkey '^[[A' history-beginning-search-backward
+  bindkey '^[[B' history-beginning-search-forward
 fi
+# Init starship after zvm (ZVM_INIT_MODE=sourcing means source above is synchronous).
+# Kept outside zvm_after_init so re-sourcing ~/.zshrc also reinitialises correctly.
+(( $+commands[starship] )) && eval "$(starship init zsh)"
 unset _zb _zvm_file
 
-alias nv='nvim'
-alias vn='nvim'
-alias vm='nvim'
-alias vim='nvim'
-
-# --- Prompt (Starship if installed, else plain zsh + git branch) ---
-if (( $+commands[starship] )); then
-  eval "$(starship init zsh)"
-else
+if ! (( $+commands[starship] )); then
   autoload -Uz vcs_info add-zsh-hook
   zstyle ':vcs_info:*' enable git
   zstyle ':vcs_info:git:*' check-for-changes true
@@ -104,6 +108,11 @@ else
   setopt PROMPT_SUBST
   PROMPT='%F{cyan}%2~%f %F{magenta}${vcs_info_msg_0_}%f%# '
 fi
+
+alias nv='nvim'
+alias vn='nvim'
+alias vm='nvim'
+alias vim='nvim'
 
 # --- Autosuggestions & syntax highlighting (highlighting must load last) ---
 _brewp=
