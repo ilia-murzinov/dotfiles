@@ -47,9 +47,6 @@ if command -v zoxide &> /dev/null; then
   alias cd='z'
 fi
 
-# --- fzf ---
-[[ -f ~/.fzf.zsh ]] && source ~/.fzf.zsh
-
 # --- yazi (cwd follows on quit: y + q; Q quits without cd) ---
 if (( $+commands[yazi] )); then
   y() {
@@ -67,6 +64,8 @@ function zvm_config() {
   ZVM_INIT_MODE=sourcing
   ZVM_LAZY_KEYBINDINGS=false
   ZVM_KEYTIMEOUT=0.25
+  # yy / yw etc. also sync to macOS clipboard when pbcopy exists (see plugin zvm_clipboard_detect)
+  ZVM_SYSTEM_CLIPBOARD_ENABLED=true
 }
 
 _zvm_file=
@@ -76,7 +75,6 @@ if (( $+commands[brew] )); then
     && _zvm_file=$_zb/share/zsh-vi-mode/zsh-vi-mode.plugin.zsh
 fi
 
-# --- Prompt (Starship if installed, else plain zsh + git branch) ---
 if [[ -n $_zvm_file ]]; then
   # zvm_after_init must be defined before sourcing so zvm calls it at end of source
   function zvm_after_init() {
@@ -90,10 +88,19 @@ else
   bindkey '^[[A' history-beginning-search-backward
   bindkey '^[[B' history-beginning-search-forward
 fi
+
 # Init starship after zvm (ZVM_INIT_MODE=sourcing means source above is synchronous).
 # Kept outside zvm_after_init so re-sourcing ~/.zshrc also reinitialises correctly.
 (( $+commands[starship] )) && eval "$(starship init zsh)"
 unset _zb _zvm_file
+
+# --- fzf (after zsh-vi-mode so ^T / ^R / Alt+C stay bound in vicmd) ---
+[[ -f ~/.fzf.zsh ]] && source ~/.fzf.zsh
+
+alias nv='nvim'
+alias vn='nvim'
+alias vm='nvim'
+alias vim='nvim'
 
 if ! (( $+commands[starship] )); then
   autoload -Uz vcs_info add-zsh-hook
@@ -108,11 +115,6 @@ if ! (( $+commands[starship] )); then
   setopt PROMPT_SUBST
   PROMPT='%F{cyan}%2~%f %F{magenta}${vcs_info_msg_0_}%f%# '
 fi
-
-alias nv='nvim'
-alias vn='nvim'
-alias vm='nvim'
-alias vim='nvim'
 
 # --- Autosuggestions & syntax highlighting (highlighting must load last) ---
 _brewp=
@@ -135,8 +137,26 @@ _proj_cd() {
 zle -N _proj_cd
 if (( $+functions[zvm_bindkey] )); then
   zvm_bindkey viins '^p' _proj_cd
+  zvm_bindkey vicmd '^p' _proj_cd
 else
   bindkey -M viins '^p' _proj_cd
+  bindkey -M vicmd '^p' _proj_cd
+fi
+
+# Ctrl+Y: run yazi cwd picker (same as typing `y` + Enter)
+if (( $+functions[y] )); then
+  _launch_yazi() {
+    BUFFER=y
+    zle accept-line
+  }
+  zle -N _launch_yazi
+  if (( $+functions[zvm_bindkey] )); then
+    zvm_bindkey viins '^y' _launch_yazi
+    zvm_bindkey vicmd '^y' _launch_yazi
+  else
+    bindkey -M viins '^y' _launch_yazi
+    bindkey -M vicmd '^y' _launch_yazi
+  fi
 fi
 
 # Attach to first unattached tmux session
