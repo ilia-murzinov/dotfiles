@@ -1,1 +1,0 @@
-/Users/iliamurzinov/projects/dotfiles.local/nvim/.config/nvim/lua/pq.lua
