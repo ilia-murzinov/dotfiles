@@ -1,0 +1,124 @@
+#!/usr/bin/env bash
+# tmux-fzf-files — fzf file paths from pane scrollback, open in current-window vim.
+# Always exits 0 so tmux run-shell does not flash an error.
+set -uo pipefail
+
+limit=50000
+pane=$(tmux display-message -p '#{pane_id}')
+cwd=$(tmux display-message -p -t "$pane" '#{pane_current_path}')
+
+resolve_path() {
+  local f="$1"
+  if [[ "$f" == "~" || "$f" == "~/"* ]]; then
+    f="${HOME}${f:1}"
+  fi
+  if [[ "$f" != /* ]]; then
+    f="$cwd/$f"
+  fi
+  python3 -c 'import os,sys; print(os.path.normpath(sys.argv[1]))' "$f"
+}
+
+# Current window only — never jump to another window.
+find_vim_pane() {
+  tmux list-panes -F "#{pane_id} #{pane_current_command}" |
+    grep -E " (n?vim)$" | head -1 | awk '{print $1}' || true
+}
+
+open_in_existing() {
+  local target="$1" file="$2" linenum="$3"
+  local escaped
+  escaped=$(printf "%s" "$file" | sed "s/'/''/g")
+  if [[ -n "$linenum" ]]; then
+    tmux send-keys -t "$target" Escape ":execute 'edit +${linenum}' fnameescape('${escaped}')" Enter
+  else
+    tmux send-keys -t "$target" Escape ":execute 'edit' fnameescape('${escaped}')" Enter
+  fi
+}
+
+# Echoes vim pane id on stdout.
+open_path() {
+  local input="$1"
+  local prefer_pane="${2:-}"
+  local file linenum="" vim_pane editor cmd
+
+  file="$input"
+  if [[ "$input" =~ ^(.+):([0-9]+)(:[0-9]+)?$ ]]; then
+    file="${BASH_REMATCH[1]}"
+    linenum="${BASH_REMATCH[2]}"
+  fi
+  file=$(resolve_path "$file")
+
+  vim_pane="${prefer_pane}"
+  [[ -z "$vim_pane" ]] && vim_pane=$(find_vim_pane)
+
+  if [[ -z "$vim_pane" ]]; then
+    editor=$(command -v nvim 2>/dev/null || command -v vim 2>/dev/null || true)
+    if [[ -z "$editor" ]]; then
+      tmux display-message "nvim/vim not found"
+      return 0
+    fi
+    if [[ -n "$linenum" ]]; then
+      cmd=$(printf '%q +%s -- %q' "$editor" "$linenum" "$file")
+    else
+      cmd=$(printf '%q -- %q' "$editor" "$file")
+    fi
+    vim_pane=$(tmux split-window -h -P -F '#{pane_id}' -c "$cwd" "$cmd") || {
+      tmux display-message "failed to split pane for editor"
+      return 0
+    }
+  else
+    open_in_existing "$vim_pane" "$file" "$linenum"
+  fi
+  tmux select-pane -t "$vim_pane" 2>/dev/null || true
+  printf '%s\n' "$vim_pane"
+}
+
+# Paths with / ; prefer those with an extension. Skip URLs.
+extract_paths() {
+  LC_ALL=C awk '
+  {
+    line = $0
+    while (match(line, /(~\/|\.\.?\/|\/)?[[:alnum:]._+~-]+(\/[[:alnum:]._+~-]+)+(\.[[:alnum:]]+)?(:[0-9]+(:[0-9]+)?)?/)) {
+      path = substr(line, RSTART, RLENGTH)
+      gsub(/[.,;)>]+$/, "", path)
+      if (path ~ /:\/\// || path ~ /^\/\// || path ~ /^\/[^\/]+\.[[:alpha:]]{2,}\//) {
+        line = substr(line, RSTART + RLENGTH)
+        continue
+      }
+      # skip host/path lookalikes: example.com/foo.java
+      first = path
+      sub(/^(\.\/|\.\.\/|~\/)/, "", first)
+      sub(/^\//, "", first)
+      seg = first; sub(/\/.*/, "", seg)
+      if (seg ~ /^[[:alnum:]-]+\.[[:alpha:]]{2,}$/) {
+        line = substr(line, RSTART + RLENGTH)
+        continue
+      }
+      # require a slash somewhere and either an extension or 2+ path segments
+      n = split(path, parts, "/")
+      has_ext = (path ~ /\.[[:alnum:]]+(:[0-9]+(:[0-9]+)?)?$/)
+      if (n >= 2 && (has_ext || n >= 3) && !seen[path]++) print path
+      line = substr(line, RSTART + RLENGTH)
+    }
+  }'
+}
+
+content="$(tmux capture-pane -t "$pane" -J -p -S -"$limit")"
+items="$(printf '%s\n' "$content" | extract_paths | nl -w3 -s '  ')"
+[[ -z "$items" ]] && { tmux display-message "tmux-fzf-files: no paths found"; exit 0; }
+
+chosen="$(
+  fzf --tmux center,100%,50% --multi --exit-0 --no-preview \
+    --bind "ctrl-y:execute-silent(awk '{print \$2}' {+f} | pbcopy)" \
+    <<<"$items" || true
+)"
+[[ -z "$chosen" ]] && exit 0
+
+vim_pane=""
+while read -r line; do
+  path="$(awk '{print $2}' <<<"$line")"
+  [[ -n "$path" ]] || continue
+  vim_pane=$(open_path "$path" "$vim_pane")
+done <<<"$chosen"
+
+exit 0

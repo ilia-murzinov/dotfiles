@@ -37,6 +37,8 @@ install-pre-stow:
 		.aerospace.toml \
 		bin/proj-picker \
 		bin/tmux-open-in-vim \
+		bin/tmux-fzf-url \
+		bin/tmux-fzf-files \
 		bin/tmux-resize-all \
 		.config/kitty/kitty.conf \
 		.config/kitty/catppuccin-mocha.conf \
