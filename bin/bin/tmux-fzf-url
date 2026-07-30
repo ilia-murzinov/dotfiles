@@ -1,7 +1,9 @@
 #!/usr/bin/env bash
 # tmux-fzf-url — open/copy URLs from the active pane (scrollback + wrapped lines).
-# Replaces wfxr/tmux-fzf-url keybinding: fixes ctrl-y copy (safe multi-select) and
-# captures scrollback instead of only the visible screen.
+# Replaces wfxr/tmux-fzf-url keybinding:
+#   - scrollback instead of visible screen only
+#   - safe ctrl-y copy ({+f})
+#   - rejoin soft wraps AND hard wraps (vim/less/fold / multi-line strings)
 set -euo pipefail
 
 PLUGIN_DIR="${HOME}/.tmux/plugins/tmux-fzf-url"
@@ -15,6 +17,7 @@ custom_copy="$(tmux show -gqv '@fzf-url-copy-cmd')"
 custom_pat="$(tmux show -gqv '@fzf-url-custom-pat')"
 custom_sub="$(tmux show -gqv '@fzf-url-custom-sub')"
 fzf_options="$(tmux show -gqv '@fzf-url-fzf-options')"
+pane_width="$(tmux display-message -p '#{pane_width}')"
 
 get_copy_cmd() {
   if [[ -n "$1" ]]; then
@@ -60,6 +63,49 @@ read -r PAT_GH <<'PATTERN'
 ['"]([\w-]+/[\w.-]+)['"]
 PATTERN
 
+# Flatten wraps before xre (line-oriented). awk only — no python.
+# 1) full-width lines → terminal soft-wrap / vim|less|fold at pane width
+# 2) hard-broken URL tails → multi-line strings / fold at other widths
+rejoin_wrapped() {
+  # URL-char class in a string — / inside awk /.../ ends the regex.
+  awk -v width="$1" '
+  BEGIN { cont = "^[A-Za-z0-9._~:/?#\\[\\]@!&()*+,;=%-]+$" }
+  {
+    line = $0
+    gsub(/\033\[[0-9;]*[a-zA-Z]/, "", line)
+    visible = line
+    sub(/[ ]+$/, "", visible)
+    buf = (buf == "" ? visible : buf visible)
+    if (length(visible) < width) {
+      lines[++n] = buf
+      buf = ""
+    }
+  }
+  END {
+    if (buf != "") lines[++n] = buf
+    for (i = 1; i <= n; i++) {
+      line = lines[i]
+      while (i < n) {
+        nxt = lines[i + 1]
+        gsub(/^[ \t]+|[ \t]+$/, "", nxt)
+        if (nxt == "" || nxt ~ /[ \t]/ || nxt ~ /^([A-Za-z0-9._-]+)?[$#%>]$/) break
+        if (line !~ /https?:\/\/[^ \t'\''"<>]*[^ \t]$/) break
+        if (tolower(nxt) ~ /^http/ || nxt !~ cont) break
+        # Only glue obvious mid-URL breaks (not bare words like "other")
+        endc = substr(line, length(line), 1)
+        startc = substr(nxt, 1, 1)
+        ends_ok = (endc == "/" || endc == "-" || endc == "_" || endc == "=" || endc == "?" || endc == "&" || endc == "%" || endc == ".")
+        starts_ok = (startc == "/" || startc == "?" || startc == "#" || startc == "&" || startc == "=" || startc == "%")
+        if (!ends_ok && !starts_ok) break
+        line = line nxt
+        i++
+      }
+      print line
+    }
+  }
+  '
+}
+
 extract_urls() {
   if [[ -x "$XRE" ]]; then
     local args=(--strip-ansi
@@ -79,14 +125,13 @@ extract_urls() {
   fi
 }
 
-# -J joins soft-wrapped lines so long URLs stay intact; -S pulls scrollback
-content="$(tmux capture-pane -J -p -e -S -"$limit")"
+# No -e: ANSI length breaks width rejoin. No -J: awk rejoins (soft + hard wraps).
+content="$(tmux capture-pane -p -S -"$limit" | rejoin_wrapped "$pane_width")"
 items="$(printf '%s\n' "$content" | extract_urls | nl -w3 -s '  ')"
 [[ -z "$items" ]] && { tmux display 'tmux-fzf-url: no URLs found'; exit 0; }
 
 _copy_cmd="$(get_copy_cmd "$custom_copy")"
-# {+f} writes selected lines to a temp file — safe for spaces, &, and multi-select
-copy_bind="ctrl-y:execute-silent(awk '{print \$2}' {+f} | ${_copy_cmd})"
+copy_bind="ctrl-y:execute-silent(awk '{print substr(\$0, index(\$0,\$2))}' {+f} | ${_copy_cmd})"
 
 fzf_filter() {
   if [[ -n "$fzf_options" ]]; then
@@ -97,12 +142,11 @@ fzf_filter() {
   fi
 }
 
-# fzf returns non-zero on cancel; don't abort the script
 chosen="$(fzf_filter <<<"$items" || true)"
 [[ -z "$chosen" ]] && exit 0
 
 while read -r line; do
-  url="$(awk '{print $2}' <<<"$line")"
+  url="$(awk '{print substr($0, index($0,$2))}' <<<"$line")"
   [[ -n "$url" ]] || continue
   open_url "$url" &>"/tmp/tmux-$(id -u)-fzf-url.log" || true
 done <<<"$chosen"
