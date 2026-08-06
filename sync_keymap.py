@@ -3,9 +3,9 @@
 
 Reads the Vial JSON layout and updates layer bindings and combos in
 totem.keymap and zmk-piantor/config/piantor_pro_bt.keymap, preserving behaviors
-and macros. Piantor omits Totem’s bottom-row &none padding; ZMK-only combo
-positions are translated, except bt_clear (kept <32 35> to avoid a clash with
-bt_0 on 5-col boards).
+and macros. Piantor uses default_layout (42 keys with outer &none columns);
+Totem bottom-row padding is dropped, then side padding is re-added. ZMK-only
+combo positions are translated; bt_clear keeps a Piantor override.
 
 Usage: python3 sync_keymap.py [vial_file] [zmk_path]
 """
@@ -109,8 +109,10 @@ _ZMK_ONLY_COMBOS = [
 
 # Piantor: Totem <34 20> and <34 21> would both end up on <32 20>; use a distinct
 # chord (BT clear). Other entries use translate_totem_to_piantor_key_positions.
+# Piantor config uses default_layout (42 keys with outer &none columns).
 _ZMK_ONLY_COMBOS_PIANTOR_OVERRIDES = {
-    "bt_clear": {"key-positions": "<32 35>"},
+    # Totem padding index 20 does not map cleanly; keep chord on Z (25).
+    "bt_clear": {"key-positions": "<38 25>"},
 }
 
 # ── Macro auto-detection ──────────────────────────────────────────────────────
@@ -520,22 +522,28 @@ def totem_38_to_piantor_36(keys: list) -> list:
 
 
 def translate_totem_to_piantor_key_positions(angles: str) -> str:
-    """Map Totem physical indices (0–37) to Piantor 5×5+3 (0–35)."""
+    """Map Totem physical indices (0–37) to Piantor default_layout (0–41).
+
+    Piantor default_layout is 6+6 columns with outer &none padding per row
+    (42 keys). Logical 5-col keys sit at +1 / +3 / +4 offsets vs Totem.
+    """
     m = re.search(r"<\s*([\d\s]+)\s*>", angles.strip())
     if not m:
         raise ValueError(f"expected <…> in {angles!r}")
 
     def map_pos(p: int) -> int:
-        if p < 20:
-            return p
+        if p <= 9:
+            return p + 1
+        if p <= 19:
+            return p + 3
         if p == 20:
-            return 20
-        if 21 <= p <= 30:
-            return p - 1
+            return 24
+        if p <= 30:
+            return p + 4
         if p == 31:
-            return 29
-        if 32 <= p <= 37:
-            return p - 2
+            return 35
+        if p <= 37:
+            return p + 4
         raise ValueError(f"invalid Totem key position {p}")
 
     parts = m.group(1).split()
@@ -543,41 +551,20 @@ def translate_totem_to_piantor_key_positions(angles: str) -> str:
 
 
 def format_layer_piantor(name, keys_38):
-    """36-key Corne-style row (no bottom &none padding) matching five_col ZMK order."""
+    """42-key default_layout row (outer &none padding; matches chosen layout)."""
     k = totem_38_to_piantor_36(keys_38)
-    col_keys = {i: [] for i in range(10)}
-    for row_keys in (k[0:10], k[10:20], k[20:30]):
-        for i, key in enumerate(row_keys):
-            col_keys[i].append(key)
-    for i, key in enumerate(k[30:33]):
-        col_keys[i + 2].append(key)
-    for i, key in enumerate(k[33:36]):
-        col_keys[i + 5].append(key)
-    widths = {i: max((len(x) for x in col_keys[i]), default=0) for i in range(10)}
-
-    sep = "    "
-    prefix = " " * 7
-
-    def fmt(key_list, col_start, pad_last=False):
-        parts = []
-        for j, key in enumerate(key_list):
-            col = col_start + j
-            if j < len(key_list) - 1 or pad_last:
-                parts.append(key.ljust(widths[col]))
-            else:
-                parts.append(key)
-        return "  ".join(parts)
-
-    r0 = f"{prefix}{fmt(k[0:5], 0, pad_last=True)}{sep}{fmt(k[5:10], 5)}"
-    r1 = f"{prefix}{fmt(k[10:15], 0, pad_last=True)}{sep}{fmt(k[15:20], 5)}"
-    r2 = f"{prefix}{fmt(k[20:25], 0, pad_last=True)}{sep}{fmt(k[25:30], 5)}"
-    thumb_offset = len(prefix) + widths[0] + 2 + widths[1] + 2
-    r3 = f"{' ' * thumb_offset}{fmt(k[30:33], 2, pad_last=True)}{sep}{fmt(k[33:36], 5)}"
-
+    parts = (
+        ["&none", *k[0:10], "&none"]
+        + ["&none", *k[10:20], "&none"]
+        + ["&none", *k[20:30], "&none"]
+        + k[30:36]
+    )
+    if len(parts) != 42:
+        raise ValueError(f"expected 42 Piantor keys, got {len(parts)}")
     return "\n".join([
         f"        {name} {{",
         f"            bindings = <",
-        r0, r1, r2, r3,
+        " ".join(parts),
         f"            >;",
         f"        }};",
     ])
@@ -719,34 +706,51 @@ def format_combos(vil):
 
 
 def build_vial_position_map_piantor(vil):
-    """Map Vial keycodes to Piantor physical order (0–35; no Totem &none padding)."""
+    """Map Vial keycodes to Piantor default_layout positions (0–41, outer &none)."""
     pos_map = {}
 
     for layer_data in vil["layout"]:
         left, right = layer_data[:4], layer_data[4:]
-        pos = 0
 
-        def register(code):
-            nonlocal pos
+        def register_at(code, pos):
             if code not in ("KC_NO", "KC_TRNS", -1) and code not in pos_map:
                 pos_map[code] = pos
-            pos += 1
 
-        for row in range(2):
-            for i in range(1, 6):
-                register(left[row][i])
-            for i in range(5, 0, -1):
-                register(right[row][i])
-
+        # Row 0: positions 1–10 (0 and 11 are &none)
+        p = 1
         for i in range(1, 6):
-            register(left[2][i])
+            register_at(left[0][i], p)
+            p += 1
         for i in range(5, 0, -1):
-            register(right[2][i])
+            register_at(right[0][i], p)
+            p += 1
 
+        # Row 1: positions 13–22
+        p = 13
+        for i in range(1, 6):
+            register_at(left[1][i], p)
+            p += 1
+        for i in range(5, 0, -1):
+            register_at(right[1][i], p)
+            p += 1
+
+        # Row 2: positions 25–34
+        p = 25
+        for i in range(1, 6):
+            register_at(left[2][i], p)
+            p += 1
+        for i in range(5, 0, -1):
+            register_at(right[2][i], p)
+            p += 1
+
+        # Thumbs: positions 36–41
+        p = 36
         for i in range(3, 6):
-            register(left[3][i])
+            register_at(left[3][i], p)
+            p += 1
         for i in range(5, 2, -1):
-            register(right[3][i])
+            register_at(right[3][i], p)
+            p += 1
 
     return pos_map
 

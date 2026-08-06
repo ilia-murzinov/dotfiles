@@ -579,15 +579,15 @@ class TestSpliceCombos(unittest.TestCase):
 
 class TestPiantorTotemTranslation(unittest.TestCase):
     def test_totem_to_piantor_bt_chords(self):
-        self.assertEqual(translate_totem_to_piantor_key_positions("<34 21>"), "<32 20>")
-        self.assertEqual(translate_totem_to_piantor_key_positions("<35 34>"), "<33 32>")
-        self.assertEqual(translate_totem_to_piantor_key_positions("<34 0 10 21>"), "<32 0 10 20>")
+        self.assertEqual(translate_totem_to_piantor_key_positions("<34 21>"), "<38 25>")
+        self.assertEqual(translate_totem_to_piantor_key_positions("<35 34>"), "<39 38>")
+        self.assertEqual(translate_totem_to_piantor_key_positions("<34 0 10 21>"), "<38 1 13 25>")
 
     def test_bt_clear_override(self):
         entry = zmk_only_entry_for_piantor(
             {"name": "bt_clear", "bindings": "<&bt BT_CLR>", "key-positions": "<34 20>", "layers": "<6>"}
         )
-        self.assertEqual(entry["key-positions"], "<32 35>")
+        self.assertEqual(entry["key-positions"], "<38 25>")
 
     def test_totem_38_to_piantor_36_drops_padding(self):
         k = [f"{i}" for i in range(38)]

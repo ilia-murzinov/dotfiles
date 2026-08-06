@@ -480,19 +480,19 @@
 
         sym {
             bindings = <
-       &kp EXCL   &kp AT       &kp HASH       &kp DOLLAR  &kp QUESTION    &kp CARET  &none             &none                        &none      &none
-       &kp MINUS  &kp PLUS     &kp SLASH      &kp ASTRK   &kp EQUAL       &none      &kp LEFT_BRACKET  &mt RIGHT_ALT RIGHT_BRACKET  &kp RCTRL  &kp RIGHT_SHIFT
-&none  &kp UNDER  &kp PERCENT  &kp BACKSLASH  &kp AMPS    &kp PIPE        &none      &kp LEFT_BRACE    &kp RIGHT_BRACE              &none      &none  &none
+       &kp EXCL   &kp AT       &kp HASH       &kp DOLLAR  &kp QUESTION    &kp CARET  &none             &none              &none      &none
+       &kp MINUS  &kp PLUS     &kp SLASH      &kp ASTRK   &kp EQUAL       &none      &kp LEFT_BRACKET  &kp RIGHT_BRACKET  &kp RCTRL  &kp RIGHT_SHIFT
+&none  &kp UNDER  &kp PERCENT  &kp BACKSLASH  &kp AMPS    &kp PIPE        &none      &kp LEFT_BRACE    &kp RIGHT_BRACE    &none      &none  &none
                                &none          &none       &lt 4 SPACE     &none      &mo 6             &none
             >;
         };
 
         sym_add {
             bindings = <
-       &kp EXCL   &kp QUESTION  &kp AT         &kp HASH   &kp DOLLAR    &kp TILDE    &kp N7  &kp N8  &kp N9  &kp RPAR
-       &kp MINUS  &kp PLUS      &kp SLASH      &kp ASTRK  &kp EQUAL     &grave_td    &kp N4  &kp N5  &kp N6  &paren_td
-&none  &kp UNDER  &kp PERCENT   &kp BACKSLASH  &kp AMPS   &kp PIPE      &kp N0       &kp N1  &kp N2  &kp N3  &kp SLASH  &none
-                                &none          &none      &none         &lt 3 SPACE  &mo 6   &none
+       &kp EXCL   &kp AT       &kp HASH       &kp DOLLAR  &kp QUESTION    &kp N1       &kp N2    &kp N3    &kp N4   &kp N5
+       &kp MINUS  &kp PLUS     &kp SLASH      &kp ASTRK   &kp EQUAL       &kp N6       &kp N7    &kp N8    &kp N9   &kp N0
+&none  &kp UNDER  &kp PERCENT  &kp BACKSLASH  &kp AMPS    &kp PIPE        &kp GRAVE    &kp LPAR  &kp RPAR  &kp DOT  &kp SLASH  &none
+                               &none          &none       &none           &lt 3 SPACE  &mo 6     &none
             >;
         };
 
