@@ -2,10 +2,21 @@
 
 config-version = 2
 
-persistent-workspaces = ["0", "1", "2", "3", "4", "5"]
+# No workspace 0 — start at 1
+persistent-workspaces = ["1", "2", "3", "4", "5"]
 
 # Mouse follows focus when focused monitor changes
 on-focused-monitor-changed = ['move-mouse monitor-lazy-center']
+
+# External = macOS main (System Settings → Displays → "Use as Menu Bar").
+# Workspace 3 lives on the laptop when docked; on undock it follows to main
+# with its windows (so secondary content ends up on space 3 on the remaining screen).
+[workspace-to-monitor-force-assignment]
+1 = 'main'
+2 = 'main'
+3 = ['secondary', 'main']
+4 = 'main'
+5 = 'main'
 
 [mode.main.binding]
     # See: https://nikitabobko.github.io/AeroSpace/goodies#open-a-new-window-with-applescript
