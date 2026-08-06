@@ -53,14 +53,11 @@ on-focused-monitor-changed = ['move-mouse monitor-lazy-center']
 
     alt-shift-space = 'layout floating tiling' # 'floating toggle' in i3
 
-    # Delayed double switch: second call must run after macOS focus-steal
-    # to another Chrome window on the laptop (#101). Sync ['ws','ws'] is a
-    # no-op for the second call when steal hasn't happened yet.
-    alt-a = '''exec-and-forget /bin/bash -c '/opt/homebrew/bin/aerospace workspace 1; sleep 0.1; /opt/homebrew/bin/aerospace workspace 1' '''
-    alt-s = '''exec-and-forget /bin/bash -c '/opt/homebrew/bin/aerospace workspace 2; sleep 0.1; /opt/homebrew/bin/aerospace workspace 2' '''
-    alt-d = '''exec-and-forget /bin/bash -c '/opt/homebrew/bin/aerospace workspace 3; sleep 0.1; /opt/homebrew/bin/aerospace workspace 3' '''
-    alt-f = '''exec-and-forget /bin/bash -c '/opt/homebrew/bin/aerospace workspace 4; sleep 0.1; /opt/homebrew/bin/aerospace workspace 4' '''
-    alt-g = '''exec-and-forget /bin/bash -c '/opt/homebrew/bin/aerospace workspace 5; sleep 0.1; /opt/homebrew/bin/aerospace workspace 5' '''
+    alt-a = 'workspace 1'
+    alt-s = 'workspace 2'
+    alt-d = 'workspace 3'
+    alt-f = 'workspace 4'
+    alt-g = 'workspace 5'
 
     alt-shift-a = 'move-node-to-workspace 1'
     alt-shift-s = 'move-node-to-workspace 2'
