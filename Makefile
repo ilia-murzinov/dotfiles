@@ -12,7 +12,7 @@ STOW_PACKAGES := aerospace bin kitty nvim starship tmux vim yazi zsh
 .PHONY: install uninstall install-stow install-brew install-pre-stow install-plug install-tpm install-yazi \
 	vim-minimal vim-full \
 	karabiner \
-	zmk-remote zmk-add zmk-pull zmk-push zmk-force-push zmk-sync \
+	zmk-remote zmk-add zmk-pull zmk-push zmk-force-push \
 	zmk-piantor-remote zmk-piantor-add zmk-piantor-pull zmk-piantor-push zmk-piantor-force-push
 
 install: install-stow install-brew install-pre-stow install-plug install-tpm install-yazi
@@ -130,9 +130,6 @@ zmk-force-push: zmk-remote
 	git subtree split --prefix=zmk -b zmk-split-tmp
 	git push zmk-config zmk-split-tmp:master --force
 	git branch -D zmk-split-tmp
-
-zmk-sync:
-	python3 sync_keymap.py
 
 zmk-piantor-remote:
 	@git remote get-url zmk-piantor-config >/dev/null 2>&1 || git remote add zmk-piantor-config git@github.com:ilia-murzinov/zmk-config.git

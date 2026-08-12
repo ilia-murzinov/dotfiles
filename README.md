@@ -49,8 +49,6 @@ Override destination: `make install DEST=/other/home`. Remove Stowed symlinks: `
 
 **ZMK:** first time `make zmk-add` (no-op if `zmk/` already exists), then `make zmk-pull` / `make zmk-push`. Force subtree push: `CONFIRM=yes make zmk-force-push`.
 
-**Keymap:** `python3 sync_keymap.py` or `make zmk-sync` to sync Vial → ZMK keymaps.
-
 ---
 
 ## Docs
