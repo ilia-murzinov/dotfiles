@@ -10,7 +10,7 @@
 //
 // ▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄
 
-#define ZMK_POINTING_DEFAULT_MOVE_VAL 2800
+#define ZMK_POINTING_DEFAULT_MOVE_VAL 1800
 #define ZMK_POINTING_DEFAULT_SCRL_VAL 25
 
 #include <behaviors.dtsi>
@@ -20,8 +20,8 @@
 #include <dt-bindings/zmk/pointing.h>
 
 &mmv {
-    time-to-max-speed-ms = <300>;
-    acceleration-exponent = <2>;
+    time-to-max-speed-ms = <500>;
+    acceleration-exponent = <1>;
 };
 
 &msc {
@@ -445,13 +445,13 @@
 
         sym {
             bindings = <
-&none  &kp EXCL  &kp AT  &kp HASH  &kp DOLLAR  &kp QUESTION  &kp CARET  &none  &none  &none  &none  &none  &none  &kp MINUS  &kp PLUS  &kp SLASH  &kp ASTRK  &kp EQUAL  &none  &kp LEFT_BRACKET  &kp RIGHT_BRACKET  &kp RCTRL  &kp RIGHT_SHIFT  &none  &none  &kp UNDER  &kp PERCENT  &kp BACKSLASH  &kp AMPS  &kp PIPE  &none  &kp LEFT_BRACE  &kp RIGHT_BRACE  &none  &none  &none  &none  &none  &lt 4 SPACE  &none  &mo 6  &none
+&none  &kp EXCL  &kp AT  &kp HASH  &kp DOLLAR  &kp QUESTION  &kp CARET  &none  &none  &none  &none  &none  &none  &kp MINUS  &kp PLUS  &kp SLASH  &kp ASTRK  &kp EQUAL  &none  &kp LEFT_BRACKET  &mt RIGHT_ALT RIGHT_BRACKET  &kp RCTRL  &kp RIGHT_SHIFT  &none  &none  &kp UNDER  &kp PERCENT  &kp BACKSLASH  &kp AMPS  &kp PIPE  &none  &kp LEFT_BRACE  &kp RIGHT_BRACE  &none  &none  &none  &none  &mo 7  &lt 4 SPACE  &none  &none  &none
             >;
         };
 
         sym_add {
             bindings = <
-&none  &kp EXCL  &kp AT  &kp HASH  &kp DOLLAR  &kp QUESTION  &kp N1  &kp N2  &kp N3  &kp N4  &kp N5  &none  &none  &kp MINUS  &kp PLUS  &kp SLASH  &kp ASTRK  &kp EQUAL  &kp N6  &kp N7  &kp N8  &kp N9  &kp N0  &none  &none  &kp UNDER  &kp PERCENT  &kp BACKSLASH  &kp AMPS  &kp PIPE  &kp GRAVE  &kp LPAR  &kp RPAR  &kp DOT  &kp SLASH  &none  &none  &none  &none  &lt 3 SPACE  &mo 6  &none
+&none  &kp EXCL  &kp QUESTION  &kp AT  &kp HASH  &kp DOLLAR  &kp TILDE  &kp N7  &kp N8  &kp N9  &kp RPAR  &none  &none  &kp MINUS  &kp PLUS  &kp SLASH  &kp ASTRK  &kp EQUAL  &grave_td  &kp N4  &kp N5  &kp N6  &paren_td  &none  &none  &kp UNDER  &kp PERCENT  &kp BACKSLASH  &kp AMPS  &kp PIPE  &kp N0  &kp N1  &kp N2  &kp N3  &kp SLASH  &none  &none  &none  &none  &lt 3 SPACE  &mo 7  &none
             >;
         };
 
@@ -463,7 +463,7 @@
 
         media {
             bindings = <
-&none  &none  &none  &kp LG(LS(N3))  &kp LG(LS(N4))  &none  &none  &kp C_BRIGHTNESS_DEC  &kp C_BRIGHTNESS_INC  &none  &none  &none  &none  &kp LG(LA(LC(LEFT)))  &kp LG(LA(LC(F)))  &kp LG(LC(F))  &kp LG(LA(LC(RIGHT)))  &none  &kp C_PLAY_PAUSE  &kp C_VOL_DN  &kp C_VOLUME_UP  &kp K_MUTE  &none  &none  &none  &none  &none  &none  &none  &none  &none  &none  &none  &none  &none  &none  &none  &none  &none  &none  &none  &none
+&none  &bootloader  &none  &kp LG(LS(N3))  &kp LG(LS(N4))  &none  &bl BL_OFF  &kp C_BRIGHTNESS_DEC  &kp C_BRIGHTNESS_INC  &none  &bootloader  &none  &none  &kp LG(LA(LC(LEFT)))  &kp LG(LA(LC(F)))  &kp LG(LC(F))  &kp LG(LA(LC(RIGHT)))  &none  &kp C_PLAY_PAUSE  &kp C_VOL_DN  &kp C_VOLUME_UP  &kp K_MUTE  &none  &none  &none  &bt BT_SEL 0  &bt BT_SEL 1  &bt BT_SEL 2  &bt BT_SEL 3  &bt BT_SEL 4  &none  &none  &none  &none  &none  &none  &none  &none  &none  &none  &none  &none
             >;
         };
 
