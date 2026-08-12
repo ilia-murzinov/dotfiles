@@ -41,7 +41,8 @@ install-pre-stow:
 		bin/tmux-fzf-files \
 		bin/tmux-resize-all \
 		.config/kitty/kitty.conf \
-		.config/kitty/catppuccin-mocha.conf \
+		.config/kitty/tokyonight_night.conf \
+		.config/tmux/tokyonight_night.tmux \
 		.config/nvim/init.lua \
 		.config/nvim/lua/plugins.lua \
 		.config/nvim/lua/setup.lua \
@@ -89,9 +90,9 @@ vim-full: install-stow install-pre-stow install-plug
 
 install-yazi:
 	mkdir -p "$(DEST)/.config/yazi/flavors"
-	test -d "$(DEST)/.config/yazi/flavors/catppuccin-mocha.yazi" || \
-		( t=$$(mktemp -d) && git clone --depth 1 https://github.com/yazi-rs/flavors.git $$t/f \
-		&& cp -R $$t/f/catppuccin-mocha.yazi "$(DEST)/.config/yazi/flavors/" && rm -rf $$t )
+	test -d "$(DEST)/.config/yazi/flavors/tokyo-night.yazi" || \
+		GIT_TERMINAL_PROMPT=0 git clone --depth 1 https://github.com/BennyOe/tokyo-night.yazi.git \
+			"$(DEST)/.config/yazi/flavors/tokyo-night.yazi"
 
 # --- Karabiner ---------------------------------------------------------------
 

@@ -55,10 +55,10 @@ See the full **copy-mode-vi** table: `tmux list-keys -T copy-mode-vi` or **tmux(
 | **continuum** | Auto-save every 15 min, restore on start |
 | **yank** | Copy to system clipboard in copy mode |
 | **open** | Open paths/URLs from copy mode |
-| **catppuccin** | Macchiato theme, basic window tabs |
+| **tokyo-night** | Folke extras status bar (night) |
 | **vim-tmux-navigator** | C-h/j/k/l across Vim splits and tmux panes |
 
 ## Notes
 
 - **Shift+Enter** sent as `\e[13;2u` for apps like Claude Code.
-- Thin `┈` dash under the tab bar; **mauve** dashes + border on the active pane (`pane-border-indicators colour`).
+- Thin `┈` dash under the tab bar; **blue** dashes + border on the active pane.

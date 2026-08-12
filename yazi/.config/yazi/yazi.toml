@@ -1,4 +1,5 @@
 # https://yazi-rs.github.io/docs/configuration/yazi
 # Text files use $EDITOR (set to nvim in zsh/.zshrc).
 [flavor]
-use = "catppuccin-mocha"
+use = "tokyo-night"
+dark = "tokyo-night"

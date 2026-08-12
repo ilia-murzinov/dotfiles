@@ -3,10 +3,10 @@
 -- Each block is guarded with pcall so a missing plugin never crashes startup.
 --
 
--- Darken diff highlights so the cursor (#f5e0dc) remains visible against them
+-- Darken diff highlights so the cursor stays visible against them
 local function apply_diff_highlights()
-  vim.api.nvim_set_hl(0, "DiffChange", { bg = "#3d3800" })
-  vim.api.nvim_set_hl(0, "DiffText",   { bg = "#524d00", bold = true })
+  vim.api.nvim_set_hl(0, "DiffChange", { bg = "#2a2a14" })
+  vim.api.nvim_set_hl(0, "DiffText",   { bg = "#3d3a1a", bold = true })
 end
 apply_diff_highlights()
 vim.api.nvim_create_autocmd("ColorScheme", {

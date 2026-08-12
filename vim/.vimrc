@@ -1,7 +1,7 @@
 source ~/.vim/core.vim
 source ~/.vim/plugins.vim
 
-source ~/.vim/plugin-config/catppuccin.vim
+source ~/.vim/plugin-config/tokyonight.vim
 source ~/.vim/plugin-config/fugitive.vim
 source ~/.vim/plugin-config/fzf.vim
 source ~/.vim/plugin-config/markdown-preview.vim

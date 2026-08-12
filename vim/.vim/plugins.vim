@@ -3,7 +3,11 @@ call plug#begin('~/.vim/plugged')
 " Shared (vim + nvim)
 Plug 'junegunn/fzf', { 'do': { -> fzf#install() } }
 Plug 'junegunn/fzf.vim'
-Plug 'catppuccin/vim', { 'as': 'catppuccin' }
+if has('nvim')
+  Plug 'folke/tokyonight.nvim'
+else
+  Plug 'ghifarit53/tokyonight-vim'
+endif
 Plug 'iamcco/markdown-preview.nvim', { 'do': 'cd app && npx --yes yarn install' }
 if isdirectory(expand('~/projects/shader-monitor/vim'))
   Plug '~/projects/shader-monitor', { 'rtp': 'vim' }

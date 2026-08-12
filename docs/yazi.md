@@ -1,6 +1,6 @@
 # Yazi
 
-Installed with `make install`: Homebrew `yazi`, `fd`, `ripgrep`; Catppuccin Mocha flavor copied under `~/.config/yazi/flavors/`; config Stow’d from `yazi/.config/yazi/` in this repo.
+Installed with `make install`: Homebrew `yazi`, `fd`, `ripgrep`; Tokyo Night flavor cloned under `~/.config/yazi/flavors/`; config Stow’d from `yazi/.config/yazi/` in this repo.
 
 ## From zsh
 

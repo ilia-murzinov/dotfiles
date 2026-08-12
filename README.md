@@ -24,13 +24,13 @@ Each top-level package directory mirrors paths under `$HOME` (for example `nvim/
 
 ## Theme
 
-All tools use **Catppuccin** (Mocha/Macchiato):
+All tools use **Tokyo Night**:
 
-- **Kitty**: catppuccin macchiato
-- **tmux**: catppuccin/tmux — macchiato
-- **vim/nvim**: catppuccin — macchiato
+- **Kitty**: tokyonight night
+- **tmux**: folke tokyonight night extras
+- **vim/nvim**: tokyonight night (`folke/tokyonight.nvim` / `ghifarit53/tokyonight-vim`)
 - **zsh**: [Starship](https://starship.rs/) (`brew install starship` via `make install`). Without Starship: short `%` prompt + `vcs_info` markers.
-- **yazi**: Catppuccin Mocha flavor (from [yazi-rs/flavors](https://github.com/yazi-rs/flavors))
+- **yazi**: Tokyo Night flavor ([BennyOe/tokyo-night.yazi](https://github.com/BennyOe/tokyo-night.yazi))
 
 ## Install
 
