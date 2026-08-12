@@ -9,14 +9,14 @@ persistent-workspaces = ["1", "2", "3", "4", "5"]
 on-focused-monitor-changed = ['move-mouse monitor-lazy-center']
 
 # External = macOS main (System Settings → Displays → "Use as Menu Bar").
-# Workspace 3 lives on the laptop when docked; on undock it follows to main
-# with its windows (so secondary content ends up on space 3 on the remaining screen).
+# Workspace 5 (alt-g) lives on the laptop when docked; on undock it follows to main
+# with its windows (so secondary content ends up on space 5 on the remaining screen).
 [workspace-to-monitor-force-assignment]
 1 = 'main'
 2 = 'main'
-3 = ['secondary', 'main']
+3 = 'main'
 4 = 'main'
-5 = 'main'
+5 = ['secondary', 'main']
 
 [mode.main.binding]
     # See: https://nikitabobko.github.io/AeroSpace/goodies#open-a-new-window-with-applescript
