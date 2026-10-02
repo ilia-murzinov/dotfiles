@@ -5,10 +5,19 @@ import {
   mapSimultaneous,
   rule,
   writeToProfile,
+  type Manipulator,
 } from "karabiner.ts";
 import { capsWord, hrm, holdTapLayer } from "karabiner.ts-greg-mods";
 
 const builtIn = ifDevice({ is_built_in_keyboard: true });
+
+/** Drop mouse-button rules so Karabiner need not start VirtualHIDPointing. */
+function withoutPointing(manipulators: Manipulator[]): Manipulator[] {
+  return manipulators.filter((m) => {
+    const from = (m as { from?: { pointing_button?: unknown } }).from;
+    return !(from && "pointing_button" in from);
+  });
+}
 
 writeToProfile("Default", [
   rule("Remap kes")
@@ -84,20 +93,24 @@ writeToProfile("Default", [
   rule("Home row mods")
     .condition(builtIn)
     .manipulators(
-      hrm(
-        new Map([
-          ["a", "left_shift"],
-          ["s", "left_control"],
-          ["d", "left_option"],
-          ["f", "left_command"],
-          [";", "right_shift"],
-          ["j", "right_command"],
-          ["k", "right_option"],
-          ["l", "right_control"],
-        ]),
-      )
-        .holdTapStrategy("permissive-hold")
-        .tappingTerm(300)
-        .build(),
+      withoutPointing(
+        hrm(
+          new Map([
+            ["a", "left_shift"],
+            ["s", "left_control"],
+            ["d", "left_option"],
+            ["f", "left_command"],
+            [";", "right_shift"],
+            ["j", "right_command"],
+            ["k", "right_option"],
+            ["l", "right_control"],
+          ]),
+        )
+          .lazy(true)
+          .triples(false)
+          .holdTapStrategy("permissive-hold")
+          .tappingTerm(300)
+          .build(),
+      ),
     ),
 ]);
