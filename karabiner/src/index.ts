@@ -1,6 +1,7 @@
 // Aligned to vial/corne-keymap.vil (combos, nav, home row mods)
 import {
   ifDevice,
+  ifInputSource,
   map,
   mapSimultaneous,
   rule,
@@ -10,6 +11,10 @@ import {
 import { capsWord, hrm, holdTapLayer } from "karabiner.ts-greg-mods";
 
 const builtIn = ifDevice({ is_built_in_keyboard: true });
+const abc = ifInputSource({ input_source_id: "com.apple.keylayout.ABC" });
+const russian = ifInputSource({
+  input_source_id: "com.apple.keylayout.RussianWin",
+});
 
 /** Drop mouse-button rules so Karabiner need not start VirtualHIDPointing. */
 function withoutPointing(manipulators: Manipulator[]): Manipulator[] {
@@ -20,9 +25,17 @@ function withoutPointing(manipulators: Manipulator[]): Manipulator[] {
 }
 
 writeToProfile("Default", [
+  // Toggle ABC <-> RussianWin directly (don't rely on macOS ⌃Space hotkey).
   rule("Remap kes")
     .condition(builtIn)
-    .manipulators([map("spacebar", "command").to("spacebar", "control")]),
+    .manipulators([
+      map("spacebar", "command")
+        .condition(abc)
+        .toInputSource({ input_source_id: "com.apple.keylayout.RussianWin" }),
+      map("spacebar", "command")
+        .condition(russian)
+        .toInputSource({ input_source_id: "com.apple.keylayout.ABC" }),
+    ]),
 
   // Combos: order and set match corne-keymap.vil
   rule("Combos")
