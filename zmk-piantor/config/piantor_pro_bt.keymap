@@ -261,13 +261,6 @@
             label = "PERSONAL_EMAIL";
         };
 
-        work_email: work_email {
-            compatible = "zmk,behavior-macro";
-            #binding-cells = <0>;
-            bindings = <&kp I &kp L &kp I &kp A &kp DOT &kp M &kp U &kp R &kp Z &kp I &kp N &kp O &kp V &kp AT &kp R &kp E &kp V &kp O &kp L &kp U &kp T &kp DOT &kp C &kp O &kp M>;
-            label = "WORK_EMAIL";
-        };
-
         thinking_face: thinking_face {
             compatible = "zmk,behavior-macro";
             #binding-cells = <0>;
