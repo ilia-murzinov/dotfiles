@@ -2,7 +2,7 @@
   "name": "karabiner-config",
   "description": "karabiner config in karabiner.ts",
   "scripts": {
-    "build": "tsx src/index.ts",
+    "build": "tsx src/index.ts && tsx src/postprocess.ts",
     "update": "npm update karabiner.ts karabiner.ts-greg-mods"
   },
   "devDependencies": {
