@@ -19,6 +19,13 @@ function withoutPointing(manipulators: Manipulator[]): Manipulator[] {
   });
 }
 
+// Keys with no nav mapping replay as themselves, so a fast space roll with
+// them never eats the space (don't|r → don'tre).
+const identityReplayKeys = [
+  "b", "e", "m", "n", "o", "p", "q", "r", "t", "w", "x", "y", "z",
+  "semicolon", "comma", "period",
+];
+
 writeToProfile("Default", [
   // Combos: order and set match corne-keymap.vil
   rule("Combos")
@@ -54,6 +61,8 @@ writeToProfile("Default", [
     ]),
 
   holdTapLayer("spacebar")
+    // Nav actions fire as soon as the key is tapped while space is held
+    // (space↓ key↓ key↑), no need to hold out the tapping term.
     .permissiveHoldManipulators(
       map("h").to("left_arrow"),
       map("j").to("down_arrow"),
@@ -69,7 +78,12 @@ writeToProfile("Default", [
       map("f").to("f", "option"),
       map("g").to("g", "option"),
     )
-    .tappingTerm(300)
+    // Keys with no nav mapping still replay slowly so typing rolls never
+    // lose the space.
+    .slowManipulators(
+      ...identityReplayKeys.map((k) => map(k as never).to(k as never)),
+    )
+    .tappingTerm(175)
     .description("Nav layer")
     .build(),
 
@@ -89,7 +103,7 @@ writeToProfile("Default", [
   rule("Home row mods")
     .condition(builtIn)
     .manipulators(
-      withoutPointing(
+withoutPointing(
         hrm(
           new Map([
             ["a", "left_shift"],
@@ -105,6 +119,10 @@ writeToProfile("Default", [
           .lazy(true)
           .triples(false)
           .holdTapStrategy("permissive-hold")
+          // roll-safety for the two combos seen misfiring live:
+          // d+u ("dude" -> "¨de") and a+l ("really" -> "reLly")
+          .keys("left_option", ["u"], "slow")
+          .keys("left_shift", ["l"], "slow")
           .tappingTerm(300)
           .build(),
       ),
