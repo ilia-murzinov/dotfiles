@@ -4,6 +4,7 @@
 #   - scrollback instead of visible screen only
 #   - safe ctrl-y copy ({+f})
 #   - rejoin soft wraps AND hard wraps (vim/less/fold / multi-line strings)
+#   - newest-first list (reverse before xre: dedup keeps the latest occurrence)
 set -euo pipefail
 
 PLUGIN_DIR="${HOME}/.tmux/plugins/tmux-fzf-url"
@@ -65,11 +66,12 @@ PATTERN
 
 # Flatten wraps before xre (line-oriented). awk only — no python.
 # 1) full-width lines → terminal soft-wrap / vim|less|fold at pane width
-# 2) hard-broken URL tails → multi-line strings / fold at other widths
+# 2) hard-broken URLs (TUI margins like opencode wrap mid-token) → glue the
+#    next line's first URL-fragment token when the break looks mid-URL;
+#    the remainder of that line is kept for later passes
 rejoin_wrapped() {
   # URL-char class in a string — / inside awk /.../ ends the regex.
   awk -v width="$1" '
-  BEGIN { cont = "^[A-Za-z0-9._~:/?#\\[\\]@!&()*+,;=%-]+$" }
   {
     line = $0
     gsub(/\033\[[0-9;]*[a-zA-Z]/, "", line)
@@ -83,24 +85,34 @@ rejoin_wrapped() {
   }
   END {
     if (buf != "") lines[++n] = buf
-    for (i = 1; i <= n; i++) {
+    strong = "/&#=%_-"    # chars prose never/rarely ends a line with → mid-URL break (? excluded: questions)
+    startp = "/?#&=%"    # chars prose rarely starts a fragment with
+    i = 1
+    while (i <= n) {
       line = lines[i]
-      while (i < n) {
-        nxt = lines[i + 1]
-        gsub(/^[ \t]+|[ \t]+$/, "", nxt)
-        if (nxt == "" || nxt ~ /[ \t]/ || nxt ~ /^([A-Za-z0-9._-]+)?[$#%>]$/) break
-        if (line !~ /https?:\/\/[^ \t'\''"<>]*[^ \t]$/) break
-        if (tolower(nxt) ~ /^http/ || nxt !~ cont) break
-        # Only glue obvious mid-URL breaks (not bare words like "other")
-        endc = substr(line, length(line), 1)
-        startc = substr(nxt, 1, 1)
-        ends_ok = (endc == "/" || endc == "-" || endc == "_" || endc == "=" || endc == "?" || endc == "&" || endc == "%" || endc == ".")
-        starts_ok = (startc == "/" || startc == "?" || startc == "#" || startc == "&" || startc == "=" || startc == "%")
-        if (!ends_ok && !starts_ok) break
-        line = line nxt
-        i++
+      j = i + 1
+      # URL-ish run reaching end-of-line → the URL may be wrapped
+      while (j <= n && line ~ /https?:\/\/[^ \t'\''"<>]*[^ \t]$/) {
+        nxt = lines[j]
+        sub(/^[ \t]+/, "", nxt)
+        if (nxt == "") break
+        match(nxt, /^[^ \t]+/)
+        tok = substr(nxt, 1, RLENGTH)
+        rest = substr(nxt, RLENGTH + 1)
+        sub(/^[ \t]+/, "", rest)
+        if (tolower(tok) ~ /^https?:/) break   # next line starts a new URL
+        ok = 0
+        if (index(strong, substr(line, length(line), 1)) > 0) ok = 1     # broke at URL punctuation
+        else if (index(startp, substr(tok, 1, 1)) > 0) ok = 1           # fragment starts with punctuation
+        else if (tok ~ /[\/0-9_]/) ok = 1                                # fragment has path/digit/underscore
+        if (!ok) break
+        line = line tok
+        if (rest == "") { j++; continue }     # line consumed; URL may continue
+        lines[j] = rest                      # keep remainder for later passes
+        break
       }
       print line
+      i = j
     }
   }
   '
@@ -127,7 +139,9 @@ extract_urls() {
 
 # No -e: ANSI length breaks width rejoin. No -J: awk rejoins (soft + hard wraps).
 content="$(tmux capture-pane -p -S -"$limit" | rejoin_wrapped "$pane_width")"
-items="$(printf '%s\n' "$content" | extract_urls | nl -w3 -s '  ')"
+# Reverse first: xre dedups keeping the first match, so reversing the input
+# keeps the newest occurrence and the fzf list runs newest-first.
+items="$(printf '%s\n' "$content" | awk '{a[NR]=$0} END{for (i=NR; i>=1; i--) print a[i]}' | extract_urls | nl -w3 -s '  ')"
 [[ -z "$items" ]] && { tmux display 'tmux-fzf-url: no URLs found'; exit 0; }
 
 _copy_cmd="$(get_copy_cmd "$custom_copy")"
