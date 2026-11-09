@@ -91,8 +91,8 @@ rejoin_wrapped() {
     while (i <= n) {
       line = lines[i]
       j = i + 1
-      # URL-ish run reaching end-of-line → the URL may be wrapped
-      while (j <= n && line ~ /https?:\/\/[^ \t'\''"<>]*[^ \t]$/) {
+      # URL-ish run reaching end-of-line (bare "https://" included) → may be wrapped
+      while (j <= n && line ~ /https?:\/\/[^ \t'\''"<>]*$/) {
         nxt = lines[j]
         sub(/^[ \t]+/, "", nxt)
         if (nxt == "") break
