@@ -1,5 +1,11 @@
 source ~/.vimrc
 
+" Vim Everywhere: C-h/j/k/l now navigate between editor splits AND docked tool
+" windows (terminal, project view, ...) from both sides, like tmux panes.
+" Inside a tool window the dispatcher only listens for <C-w> sequences,
+" so from the terminal jump back with <C-w>k (single C-j goes to the shell).
+set VimEverywhere
+
 " Navigator: C-h/j/k/l move between splits (incl. terminal when moved to editor)
 sethandler <c-h> a:vim
 sethandler <c-l> a:vim
