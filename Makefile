@@ -37,6 +37,7 @@ install-pre-stow:
 		.aerospace.toml \
 		bin/proj-picker \
 		bin/tmux-open-in-vim \
+		bin/tmux-open-lib.sh \
 		bin/tmux-fzf-url \
 		bin/tmux-fzf-files \
 		bin/tmux-resize-all \

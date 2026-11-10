@@ -1,7 +1,12 @@
 #!/usr/bin/env bash
-# tmux-fzf-files — fzf file paths from pane scrollback, open in current-window vim.
+# tmux-fzf-files — fzf file paths from pane scrollback:
+#   - non-text / dirs → macOS `open`
+#   - text → current-window vim (or split right)
 # Always exits 0 so tmux run-shell does not flash an error.
 set -uo pipefail
+
+# shellcheck source=tmux-open-lib.sh
+source "$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/tmux-open-lib.sh"
 
 limit=50000
 pane=$(tmux display-message -p '#{pane_id}')
@@ -35,7 +40,7 @@ open_in_existing() {
   fi
 }
 
-# Echoes vim pane id on stdout.
+# Echoes vim pane id on stdout (empty when OS-opened).
 open_path() {
   local input="$1"
   local prefer_pane="${2:-}"
@@ -47,6 +52,12 @@ open_path() {
     linenum="${BASH_REMATCH[2]}"
   fi
   file=$(resolve_path "$file")
+
+  if tmux_should_os_open "$file"; then
+    tmux_os_open "$file" || tmux display-message "open failed: $file"
+    printf '%s\n' "$prefer_pane"
+    return 0
+  fi
 
   vim_pane="${prefer_pane}"
   [[ -z "$vim_pane" ]] && vim_pane=$(find_vim_pane)
@@ -104,7 +115,8 @@ extract_paths() {
 }
 
 content="$(tmux capture-pane -t "$pane" -J -p -S -"$limit")"
-items="$(printf '%s\n' "$content" | extract_paths | nl -w3 -s '  ')"
+# Newest-first: reverse scrollback before extract (dedup keeps first = latest).
+items="$(printf '%s\n' "$content" | awk '{a[NR]=$0} END{for (i=NR; i>=1; i--) print a[i]}' | extract_paths | nl -w3 -s '  ')"
 [[ -z "$items" ]] && { tmux display-message "tmux-fzf-files: no paths found"; exit 0; }
 
 chosen="$(

@@ -5,10 +5,12 @@
 #   - safe ctrl-y copy ({+f})
 #   - rejoin soft wraps AND hard wraps (vim/less/fold / multi-line strings)
 #   - newest-first list (reverse before xre: dedup keeps the latest occurrence)
-set -euo pipefail
+# No -e: grep/xre exit 1 on zero matches must not kill the script (tmux flashes "1").
+set -uo pipefail
 
 PLUGIN_DIR="${HOME}/.tmux/plugins/tmux-fzf-url"
 XRE="${PLUGIN_DIR}/bin/xre"
+XRE_VERSION="0.1.1"
 
 limit="$(tmux show -gqv '@fzf-url-history-limit')"
 [[ -z "$limit" || "$limit" == "screen" ]] && limit=50000
@@ -118,8 +120,22 @@ rejoin_wrapped() {
   '
 }
 
-extract_urls() {
+ensure_xre() {
   if [[ -x "$XRE" ]]; then
+    local current
+    current="$("$XRE" --version 2>/dev/null | awk '{print $2}')"
+    [[ "$current" == "$XRE_VERSION" ]] && return 0
+  fi
+  command -v curl &>/dev/null || return 1
+  mkdir -p "$(dirname "$XRE")"
+  tmux display "tmux-fzf-url: installing xre v${XRE_VERSION}..."
+  curl -fsSL "https://raw.githubusercontent.com/wfxr/xre/v${XRE_VERSION}/install.sh" \
+    | bash -s -- -v "v${XRE_VERSION}" -d "$(dirname "$XRE")" || return 1
+  [[ -x "$XRE" ]]
+}
+
+extract_urls() {
+  if [[ -x "$XRE" ]] || ensure_xre; then
     local args=(--strip-ansi
       -e "$PAT_URL"
       -e "$PAT_GIT" -r 'https://$1/$2'
@@ -130,9 +146,10 @@ extract_urls() {
       args+=(-e "$custom_pat")
       [[ -n "$custom_sub" ]] && args+=(-r "$custom_sub")
     fi
-    "$XRE" "${args[@]}"
+    "$XRE" "${args[@]}" || true
   else
-    grep -oE 'https?://[^[:space:]<>"'\'']+|www\.[^[:space:]<>"'\'']+' \
+    # grep exits 1 on no match — keep the pipeline alive
+    { grep -oE 'https?://[^[:space:]<>"'\'']+|www\.[^[:space:]<>"'\'']+' || true; } \
       | sed -E 's/[.,;:!?)]+$//; s|^www\.|http://www.|'
   fi
 }

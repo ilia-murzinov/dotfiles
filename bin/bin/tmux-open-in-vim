@@ -1,8 +1,12 @@
 #!/usr/bin/env bash
-# Open path under copy-mode cursor (or selection) in an existing nvim/vim pane,
-# or split a pane on the right and start the editor there.
+# Open path under copy-mode cursor (or selection):
+#   - non-text / dirs → macOS `open` immediately
+#   - text → existing nvim/vim pane, or split right and start the editor
 # Always exits 0 so tmux run-shell does not show a failure flash.
 set -uo pipefail
+
+# shellcheck source=tmux-open-lib.sh
+source "$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/tmux-open-lib.sh"
 
 pane=$(tmux display-message -p '#{pane_id}')
 cwd=$(tmux display-message -p -t "$pane" '#{pane_current_path}')
@@ -95,9 +99,14 @@ if [[ "$input" =~ ^(.+):([0-9]+)(:[0-9]+)?$ ]]; then
 fi
 file=$(resolve_path "$file")
 
-vim_pane=$(tmux list-panes -F "#{pane_id} #{pane_current_command}" | grep -E " (n?vim)$" | head -1 | awk '{print $1}' || true)
-
 tmux send-keys -t "$pane" -X cancel 2>/dev/null || true
+
+if tmux_should_os_open "$file"; then
+  tmux_os_open "$file" || tmux display-message "open failed: $file"
+  exit 0
+fi
+
+vim_pane=$(tmux list-panes -F "#{pane_id} #{pane_current_command}" | grep -E " (n?vim)$" | head -1 | awk '{print $1}' || true)
 
 if [[ -z "$vim_pane" ]]; then
     editor=$(command -v nvim 2>/dev/null || command -v vim 2>/dev/null || true)

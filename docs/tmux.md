@@ -43,7 +43,9 @@ Prefix: **C-s**
 | Keys | Action |
 |------|--------|
 | `C-s c` | Enter copy mode |
-| `O` | Open path under cursor in nvim (`~/bin/tmux-open-in-vim`) |
+| `O` | Open path under cursor (`~/bin/tmux-open-in-vim`): text → nvim, binary/dir → macOS `open` |
+| `C-s o` | fzf paths from scrollback (same open rules) |
+| `C-s u` | fzf URLs from scrollback → browser |
 
 See the full **copy-mode-vi** table: `tmux list-keys -T copy-mode-vi` or **tmux(1)** (copy-mode vi). **tmux-open** adds **`o` / `C-o` / `S`** for URLs/paths from copy mode.
 
